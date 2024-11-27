@@ -1,47 +1,42 @@
 <template>
   <v-container>
-    <v-row justify="center">
-      <v-col cols="12" >
-        <v-card class="elevation-12">
+    <v-row justify="center" align="center" style="min-height: 100vh;">
+      <v-col cols="12" sm="10" md="8" lg="6" xl="4">
+        <v-card class="mx-auto elevation-5">
           <v-toolbar dark color="primary">
-            <v-toolbar-title>Login to Proxmox Manager</v-toolbar-title>
+            <v-toolbar-title>Login</v-toolbar-title>
           </v-toolbar>
-          
+
           <v-card-text>
             <v-form @submit.prevent="login" ref="form">
               <v-text-field
                 v-model="username"
                 label="Username"
-                prepend-icon="mdi-account"
-                type="text"
-                :rules="[v => !!v || 'Username is required']"
                 required
-                class="mt-4"
+                :rules="[v => !!v || 'Username is required']"
+                class="my-2"
               ></v-text-field>
-              
+
               <v-text-field
                 v-model="password"
                 label="Password"
-                prepend-icon="mdi-lock"
                 type="password"
-                :rules="[v => !!v || 'Password is required']"
                 required
-                class="mt-4"
+                :rules="[v => !!v || 'Password is required']"
+                class="my-2"
               ></v-text-field>
+
+              <v-btn
+                color="primary"
+                block
+                :loading="loading"
+                @click="login"
+                class="mt-4"
+              >
+                Login
+              </v-btn>
             </v-form>
           </v-card-text>
-          
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn 
-              color="primary" 
-              @click="login" 
-              :loading="loading"
-              size="large"
-            >
-              Login
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -51,6 +46,7 @@
       v-model="showError"
       color="error"
       timeout="3000"
+      bottom
     >
       {{ errorMessage }}
       <template v-slot:action="{ attrs }">
@@ -91,12 +87,11 @@ export default {
           password: this.password
         });
         
-        // Store user info
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Redirect to dashboard
+        console.log('Login response:', response.data);
+        localStorage.setItem('token', 'true'); // Forcer le token pour le test
         this.$router.push('/dashboard');
       } catch (error) {
+        console.error('Login error:', error);
         this.errorMessage = error.response?.data?.error || 'Login failed';
         this.showError = true;
       } finally {
@@ -106,3 +101,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.v-card {
+  margin: 0 auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</style>

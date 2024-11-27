@@ -34,16 +34,18 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user')
+  const token = localStorage.getItem('token')
   
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!user) {
+    // Si la route nécessite une authentification
+    if (!token) {
       next('/login')
     } else {
       next()
     }
   } else {
-    if (user && to.path === '/login') {
+    // Si on est sur /login et qu'on est déjà connecté
+    if (token && to.path === '/login') {
       next('/dashboard')
     } else {
       next()

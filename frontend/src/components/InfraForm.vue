@@ -1,47 +1,98 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <v-col cols="12" md="8">
-        <v-card class="elevation-12">
-          <v-toolbar dark color="primary">
-            <v-toolbar-title>Create New Infrastructure</v-toolbar-title>
-          </v-toolbar>
-          
+      <v-col cols="12" md="10" lg="8">
+        <v-card class="mx-auto">
+          <v-card-title class="text-h5 font-weight-bold">
+            Créer une nouvelle infrastructure
+          </v-card-title>
+
           <v-card-text>
-            <v-form @submit.prevent="createInfrastructure" ref="form">
+            <v-form ref="form">
               <v-text-field
                 v-model="form.name"
-                label="VM Name"
+                label="Nom de l'infrastructure"
                 required
-                :rules="[v => !!v || 'Name is required']"
+                :rules="[v => !!v || 'Le nom est requis']"
+                class="mb-4"
               ></v-text-field>
 
-              <v-slider
-                v-model="form.cpu_cores"
-                label="CPU Cores"
-                min="1"
-                max="8"
-                thumb-label
-                required
-              ></v-slider>
+              <v-row>
+                <!-- CPU -->
+                <v-col cols="12" sm="4">
+                  <v-card class="resource-card">
+                    <div class="text-h6 mb-2">CPU</div>
+                    <v-slider
+                      v-model="form.cpu_cores"
+                      :min="1"
+                      :max="8"
+                      :step="1"
+                      thumb-label
+                      class="mb-1"
+                    ></v-slider>
+                    <v-text-field
+                      v-model="form.cpu_cores"
+                      type="number"
+                      :min="1"
+                      :max="8"
+                      :rules="[v => v >= 1 && v <= 8 || 'La valeur doit être entre 1 et 8']"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                    ></v-text-field>
+                  </v-card>
+                </v-col>
 
-              <v-slider
-                v-model="form.memory"
-                label="Memory (GB)"
-                min="1"
-                max="32"
-                thumb-label
-                required
-              ></v-slider>
+                <!-- RAM -->
+                <v-col cols="12" sm="4">
+                  <v-card class="resource-card">
+                    <div class="text-h6 mb-2">RAM (GB)</div>
+                    <v-slider
+                      v-model="form.memory"
+                      :min="1"
+                      :max="32"
+                      :step="1"
+                      thumb-label
+                      class="mb-1"
+                    ></v-slider>
+                    <v-text-field
+                      v-model="form.memory"
+                      type="number"
+                      :min="1"
+                      :max="32"
+                      :rules="[v => v >= 1 && v <= 32 || 'La valeur doit être entre 1 et 32']"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                    ></v-text-field>
+                  </v-card>
+                </v-col>
 
-              <v-slider
-                v-model="form.disk_size"
-                label="Disk Size (GB)"
-                min="10"
-                max="500"
-                thumb-label
-                required
-              ></v-slider>
+                <!-- Storage -->
+                <v-col cols="12" sm="4">
+                  <v-card class="resource-card">
+                    <div class="text-h6 mb-2">Stockage (GB)</div>
+                    <v-slider
+                      v-model="form.disk_size"
+                      :min="10"
+                      :max="500"
+                      :step="10"
+                      thumb-label
+                      class="mb-1"
+                    ></v-slider>
+                    <v-text-field
+                      v-model="form.disk_size"
+                      type="number"
+                      :min="10"
+                      :max="500"
+                      :rules="[v => v >= 10 && v <= 500 || 'La valeur doit être entre 10 et 500']"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                    ></v-text-field>
+                  </v-card>
+                </v-col>
+              </v-row>
             </v-form>
           </v-card-text>
 
@@ -49,59 +100,15 @@
             <v-spacer></v-spacer>
             <v-btn
               color="primary"
+              @click="submitForm"
               :loading="loading"
-              @click="createInfrastructure"
             >
-              Create Infrastructure
+              Créer
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- Success Dialog -->
-    <v-dialog v-model="successDialog" max-width="500">
-      <v-card>
-        <v-card-title class="text-h5 green--text">
-          Success
-        </v-card-title>
-        <v-card-text>
-          Infrastructure has been created successfully!
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="goToDashboard"
-          >
-            Go to Dashboard
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Error Dialog -->
-    <v-dialog v-model="errorDialog" max-width="500">
-      <v-card>
-        <v-card-title class="text-h5 red--text">
-          Error
-        </v-card-title>
-        <v-card-text>
-          {{ errorMessage }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="error"
-            text
-            @click="errorDialog = false"
-          >
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -112,38 +119,51 @@ export default {
   name: 'InfraForm',
   data() {
     return {
+      loading: false,
       form: {
         name: '',
         cpu_cores: 1,
-        memory: 2,
-        disk_size: 20
-      },
-      loading: false,
-      successDialog: false,
-      errorDialog: false,
-      errorMessage: ''
+        memory: 1,
+        disk_size: 10
+      }
     }
   },
   methods: {
-    async createInfrastructure() {
+    async submitForm() {
       if (!this.$refs.form.validate()) return;
 
       this.loading = true;
       try {
         await axios.post('http://localhost:5000/api/infrastructure', this.form);
-        this.successDialog = true;
-        this.$refs.form.reset();
+        this.$router.push('/dashboard');
       } catch (error) {
-        this.errorMessage = error.response?.data?.error || 'An error occurred while creating the infrastructure';
-        this.errorDialog = true;
+        console.error('Error:', error);
       } finally {
         this.loading = false;
       }
-    },
-    goToDashboard() {
-      this.successDialog = false;
-      this.$router.push('/dashboard');
     }
   }
 }
 </script>
+
+<style scoped>
+.resource-card {
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-card .text-h6 {
+  margin-bottom: 16px;
+  color: var(--v-primary-base);
+}
+
+.v-slider {
+  margin-bottom: 8px;
+}
+
+.v-text-field {
+  margin-top: 4px;
+}
+</style>
